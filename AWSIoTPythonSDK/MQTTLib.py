@@ -44,12 +44,12 @@ class AWSIoTMQTTClient:
         - TLSv1.2 Mutual Authentication
 
         X.509 certificate-based secured MQTT connection to AWS IoT
-        
+
         - Websocket SigV4
 
         IAM credential-based secured MQTT connection over Websocket to AWS IoT
 
-        It provides basic synchronous MQTT operations in the classic MQTT publish-subscribe 
+        It provides basic synchronous MQTT operations in the classic MQTT publish-subscribe
         model, along with configurations of on-top features:
 
         - Auto reconnect/resubscribe
@@ -72,7 +72,7 @@ class AWSIoTMQTTClient:
         **Parameters**
 
         *clientID* - String that denotes the client identifier used to connect to AWS IoT.
-        If empty string were provided, client id for this connection will be randomly generated 
+        If empty string were provided, client id for this connection will be randomly generated
         n server side.
 
         *protocolType* - MQTT version in use for this connection. Could be :code:`AWSIoTPythonSDK.MQTTLib.MQTTv3_1` or :code:`AWSIoTPythonSDK.MQTTLib.MQTTv3_1_1`
@@ -133,11 +133,11 @@ class AWSIoTMQTTClient:
         **Returns**
 
         None
-        
+
         """
         self._mqtt_core.clear_last_will()
 
-    def configureEndpoint(self, hostName, portNumber):
+    def configureEndpoint(self, hostName, portNumber, region):
         """
         **Description**
 
@@ -166,6 +166,7 @@ class AWSIoTMQTTClient:
         endpoint_provider = EndpointProvider()
         endpoint_provider.set_host(hostName)
         endpoint_provider.set_port(portNumber)
+        endpoint_provider.set_region(region)
         self._mqtt_core.configure_endpoint(endpoint_provider)
         if portNumber == 443 and not self._mqtt_core.use_wss():
             self._mqtt_core.configure_alpn_protocols()
@@ -174,7 +175,7 @@ class AWSIoTMQTTClient:
         """
         **Description**
 
-        Used to configure/update the custom IAM credentials for Websocket SigV4 connection to 
+        Used to configure/update the custom IAM credentials for Websocket SigV4 connection to
         AWS IoT. Should be called before connect.
 
         **Syntax**
@@ -254,12 +255,12 @@ class AWSIoTMQTTClient:
 
         **Parameters**
 
-        *baseReconnectQuietTimeSecond* - The initial back off time to start with, in seconds. 
+        *baseReconnectQuietTimeSecond* - The initial back off time to start with, in seconds.
         Should be less than the stableConnectionTime.
 
         *maxReconnectQuietTimeSecond* - The maximum back off time, in seconds.
 
-        *stableConnectionTimeSecond* - The number of seconds for a connection to last to be considered as stable. 
+        *stableConnectionTimeSecond* - The number of seconds for a connection to last to be considered as stable.
         Back off time will be reset to base once the connection is stable.
 
         **Returns**
@@ -318,7 +319,7 @@ class AWSIoTMQTTClient:
 
         .. note::
 
-          Make sure the draining speed is fast enough and faster than the publish rate. Slow draining 
+          Make sure the draining speed is fast enough and faster than the publish rate. Slow draining
           could result in inifinite draining process.
 
         **Parameters**
@@ -336,7 +337,7 @@ class AWSIoTMQTTClient:
         """
         **Description**
 
-        Used to configure the time in seconds to wait for a CONNACK or a disconnect to complete. 
+        Used to configure the time in seconds to wait for a CONNACK or a disconnect to complete.
         Should be called before connect.
 
         **Syntax**
@@ -361,7 +362,7 @@ class AWSIoTMQTTClient:
         """
         **Description**
 
-        Used to configure the timeout in seconds for MQTT QoS 1 publish, subscribe and unsubscribe. 
+        Used to configure the timeout in seconds for MQTT QoS 1 publish, subscribe and unsubscribe.
         Should be called before connect.
 
         **Syntax**
@@ -434,7 +435,7 @@ class AWSIoTMQTTClient:
 
         """
         self._mqtt_core.configure_socket_factory(socket_factory)
-        
+
     def enableMetricsCollection(self):
         """
         **Description**
@@ -877,7 +878,7 @@ class _AWSIoTMQTTDelegatingClient(object):
         **Parameters**
 
         *clientID* - String that denotes the client identifier used to connect to AWS IoT.
-        If empty string were provided, client id for this connection will be randomly generated 
+        If empty string were provided, client id for this connection will be randomly generated
         n server side.
 
         *protocolType* - MQTT version in use for this connection. Could be :code:`AWSIoTPythonSDK.MQTTLib.MQTTv3_1` or :code:`AWSIoTPythonSDK.MQTTLib.MQTTv3_1_1`
@@ -944,7 +945,7 @@ class _AWSIoTMQTTDelegatingClient(object):
         **Returns**
 
         None
-        
+
         """
         # AWSIoTMQTTClient.clearLastWill()
         self._AWSIoTMQTTClient.clearLastWill()
@@ -983,7 +984,7 @@ class _AWSIoTMQTTDelegatingClient(object):
         """
         **Description**
 
-        Used to configure/update the custom IAM credentials for the underneath AWS IoT MQTT Client 
+        Used to configure/update the custom IAM credentials for the underneath AWS IoT MQTT Client
         for Websocket SigV4 connection to AWS IoT. Should be called before connect. This is a public
         facing API inherited by application level public clients.
 
@@ -1083,7 +1084,7 @@ class _AWSIoTMQTTDelegatingClient(object):
         """
         **Description**
 
-        Used to configure the time in seconds to wait for a CONNACK or a disconnect to complete. 
+        Used to configure the time in seconds to wait for a CONNACK or a disconnect to complete.
         Should be called before connect. This is a public facing API inherited by application level public clients.
 
         **Syntax**
@@ -1110,7 +1111,7 @@ class _AWSIoTMQTTDelegatingClient(object):
         """
         **Description**
 
-        Used to configure the timeout in seconds for MQTT QoS 1 publish, subscribe and unsubscribe. 
+        Used to configure the timeout in seconds for MQTT QoS 1 publish, subscribe and unsubscribe.
         Should be called before connect. This is a public facing API inherited by application level public clients.
 
         **Syntax**
@@ -1187,7 +1188,7 @@ class _AWSIoTMQTTDelegatingClient(object):
 
         """
         self._AWSIoTMQTTClient.configureSocketFactory(socket_factory)
-        
+
     def enableMetricsCollection(self):
         """
         **Description**
@@ -1259,7 +1260,7 @@ class _AWSIoTMQTTDelegatingClient(object):
 
         **Parameters**
 
-        *keepAliveIntervalSecond* - Time in seconds for interval of sending MQTT ping request. 
+        *keepAliveIntervalSecond* - Time in seconds for interval of sending MQTT ping request.
         Default set to 30 seconds.
 
         **Returns**
@@ -1685,7 +1686,7 @@ class AWSIoTMQTTThingJobsClient(_AWSIoTMQTTDelegatingClient):
 
         *statusDetails* - Dictionary containing the key value pairs to use for the status details of the job execution
 
-        *stepTimeoutInMinutes - Specifies the amount of time this device has to finish execution of this job. 
+        *stepTimeoutInMinutes - Specifies the amount of time this device has to finish execution of this job.
 
         **Returns**
 
@@ -1734,7 +1735,7 @@ class AWSIoTMQTTThingJobsClient(_AWSIoTMQTTDelegatingClient):
 
         *includeJobDocument* - When included and set to True, the response contains the JobDocument. The default is False.
 
-        *stepTimeoutInMinutes - Specifies the amount of time this device has to finish execution of this job. 
+        *stepTimeoutInMinutes - Specifies the amount of time this device has to finish execution of this job.
 
         **Returns**
 

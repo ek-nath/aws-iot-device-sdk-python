@@ -105,13 +105,14 @@ class InternalAsyncMqttClient(object):
 
     def set_socket_factory(self, socket_factory):
         self._paho_client.socket_factory_set(socket_factory)
-        
+
     def configure_reconnect_back_off(self, base_reconnect_quiet_sec, max_reconnect_quiet_sec, stable_connection_sec):
         self._paho_client.setBackoffTiming(base_reconnect_quiet_sec, max_reconnect_quiet_sec, stable_connection_sec)
 
     def connect(self, keep_alive_sec, ack_callback=None):
         host = self._endpoint_provider.get_host()
         port = self._endpoint_provider.get_port()
+        region = self._endpoint_provider.get_region()
 
         with self._event_callback_map_lock:
             self._logger.debug("Filling in fixed event callbacks: CONNACK, DISCONNECT, MESSAGE")
@@ -119,7 +120,7 @@ class InternalAsyncMqttClient(object):
             self._event_callback_map[FixedEventMids.DISCONNECT_MID] = self._create_combined_on_disconnect_callback(None)
             self._event_callback_map[FixedEventMids.MESSAGE_MID] = self._create_converted_on_message_callback()
 
-            rc = self._paho_client.connect(host, port, keep_alive_sec)
+            rc = self._paho_client.connect(host, region, port, keep_alive_sec)
             if MQTT_ERR_SUCCESS == rc:
                 self.start_background_network_io()
 

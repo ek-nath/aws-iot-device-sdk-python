@@ -400,7 +400,7 @@ class SecuredWebSocketCore:
 
     _logger = logging.getLogger(__name__)
 
-    def __init__(self, socket, hostAddress, portNumber, AWSAccessKeyID="", AWSSecretAccessKey="", AWSSessionToken=""):
+    def __init__(self, socket, hostAddress, portNumber, region, AWSAccessKeyID="", AWSSecretAccessKey="", AWSSessionToken=""):
         self._connectStatus = self._WebsocketConnectInit
         # Handlers
         self._sslSocket = socket
@@ -425,7 +425,7 @@ class SecuredWebSocketCore:
         self._maskKey = None
         self._payloadDataBuffer = bytearray()  # Once the whole wss connection is lost, there is no need to keep the buffered payload
         try:
-            self._handShake(hostAddress, portNumber)
+            self._handShake(hostAddress, portNumber, region)
         except wssNoKeyInEnvironmentError:  # Handle SigV4 signing and websocket handshaking errors
             raise ValueError("No Access Key/KeyID Error")
         except wssHandShakeError:
@@ -480,13 +480,15 @@ class SecuredWebSocketCore:
         verifyServerAcceptKey = base64.b64encode((hashlib.sha1(clientKey + GUID)).digest())  # Bytes
         return srcAcceptKey == verifyServerAcceptKey
 
-    def _handShake(self, hostAddress, portNumber):
+    def _handShake(self, hostAddress, portNumber, region):
         CRLF = "\r\n"
-        IOT_ENDPOINT_PATTERN = r"^[0-9a-zA-Z]+(\.ats|-ats)?\.iot\.(.*)\.amazonaws\..*"
-        matched = re.compile(IOT_ENDPOINT_PATTERN, re.IGNORECASE).match(hostAddress)
-        if not matched:
-            raise ClientError("Invalid endpoint pattern for wss: %s" % hostAddress)
-        region = matched.group(2)
+        #IOT_ENDPOINT_PATTERN = r"^[0-9a-zA-Z]+(\.ats|-ats)?(.*)\.iot\.(.*)\.amazonaws\..*"
+        #matched = re.compile(IOT_ENDPOINT_PATTERN, re.IGNORECASE).match(hostAddress)
+        #import pdb; pdb.set_trace()
+        #if not matched:
+        #    raise ClientError("Invalid endpoint pattern for wss: %s" % hostAddress)
+        #if not region:
+        #    region = matched.group(2)
         signedURL = self._sigV4Handler.createWebsocketEndpoint(hostAddress, portNumber, region, "GET", "iotdata", "/mqtt")
         # Now we got a signedURL
         path = signedURL[signedURL.index("/mqtt"):]

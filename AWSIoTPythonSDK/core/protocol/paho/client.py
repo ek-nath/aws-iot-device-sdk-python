@@ -431,7 +431,7 @@ class Client(object):
         """
         if not clean_session and (client_id == "" or client_id is None):
             raise ValueError('A client id must be provided if clean session is False.')
-
+        # self._region = region
         self._protocol = protocol
         self._userdata = userdata
         self._sock = None
@@ -650,7 +650,7 @@ class Client(object):
 
         self._tls_insecure = value
 
-    def connect(self, host, port=1883, keepalive=60, bind_address=""):
+    def connect(self, host, region, port=1883, keepalive=60, bind_address=""):
         """Connect to a remote broker.
 
         host is the hostname or IP address of the remote broker.
@@ -661,7 +661,7 @@ class Client(object):
         broker. If no other messages are being exchanged, this controls the
         rate at which the client will send ping messages to the broker.
         """
-        self.connect_async(host, port, keepalive, bind_address)
+        self.connect_async(host, region, port, keepalive, bind_address)
         return self.reconnect()
 
     def connect_srv(self, domain=None, keepalive=60, bind_address=""):
@@ -696,13 +696,13 @@ class Client(object):
             host, port, prio, weight = answer
 
             try:
-                return self.connect(host, port, keepalive, bind_address)
+                return self.connect(host, region, port, keepalive, bind_address)  # SWARANGA: region is undefined
             except:
                 pass
 
         raise ValueError("No SRV hosts responded")
 
-    def connect_async(self, host, port=1883, keepalive=60, bind_address=""):
+    def connect_async(self, host, region, port=1883, keepalive=60, bind_address=""):
         """Connect to a remote broker asynchronously. This is a non-blocking
         connect call that can be used with loop_start() to provide very quick
         start.
@@ -715,6 +715,7 @@ class Client(object):
         broker. If no other messages are being exchanged, this controls the
         rate at which the client will send ping messages to the broker.
         """
+
         if host is None or len(host) == 0:
             raise ValueError('Invalid host.')
         if port <= 0:
@@ -724,7 +725,7 @@ class Client(object):
         if bind_address != "" and bind_address is not None:
             if (sys.version_info[0] == 2 and sys.version_info[1] < 7) or (sys.version_info[0] == 3 and sys.version_info[1] < 2):
                 raise ValueError('bind_address requires Python 2.7 or 3.2.')
-
+        self._region = region
         self._host = host
         self._port = port
         self._keepalive = keepalive
@@ -799,7 +800,7 @@ class Client(object):
                 # Non-None value for ._ssl will allow ops before wss-MQTT connection is established
                 rawSSL = ssl.wrap_socket(sock, ca_certs=self._tls_ca_certs, cert_reqs=ssl.CERT_REQUIRED)  # Add server certificate verification
                 rawSSL.setblocking(0)  # Non-blocking socket
-                self._ssl = SecuredWebSocketCore(rawSSL, self._host, self._port, self._AWSAccessKeyIDCustomConfig, self._AWSSecretAccessKeyCustomConfig, self._AWSSessionTokenCustomConfig)  # Override the _ssl socket
+                self._ssl = SecuredWebSocketCore(rawSSL, self._host, self._port, self._region, self._AWSAccessKeyIDCustomConfig, self._AWSSecretAccessKeyCustomConfig, self._AWSSessionTokenCustomConfig)  # Override the _ssl socket
                 # self._ssl.enableDebug()
             elif self._alpn_protocols is not None:
                 # SSLContext is required to enable ALPN support
@@ -981,7 +982,7 @@ class Client(object):
             message.retain = retain
             message.dup = False
 
-            self._out_message_mutex.acquire()                
+            self._out_message_mutex.acquire()
             self._out_messages.append(message)
             if self._max_inflight_messages == 0 or self._inflight_messages < self._max_inflight_messages:
                 self._inflight_messages = self._inflight_messages+1
@@ -990,7 +991,7 @@ class Client(object):
                 elif qos == 2:
                     message.state = mqtt_ms_wait_for_pubrec
                 self._out_message_mutex.release()
-                    
+
                 rc = self._send_publish(message.mid, message.topic, message.payload, message.qos, message.retain, message.dup)
 
                 # remove from inflight messages so it will be send after a connection is made
@@ -998,7 +999,7 @@ class Client(object):
                     with self._out_message_mutex:
                         self._inflight_messages -= 1
                         message.state = mqtt_ms_publish
-                        
+
                 return (rc, local_mid)
             else:
                 message.state = mqtt_ms_queued;
@@ -1024,7 +1025,7 @@ class Client(object):
         socket_factory: create_connection function which creates a socket to user's specification
         """
         self._socket_factory = socket_factory
-        
+
     def disconnect(self):
         """Disconnect a connected client from the broker."""
         self._state_mutex.acquire()
@@ -1426,10 +1427,10 @@ class Client(object):
         Messages that match 'sub' will be passed to 'callback'. Any
         non-matching messages will be passed to the default on_message
         callback.
-        
+
         Call multiple times with different 'sub' to define multiple topic
         specific callbacks.
-        
+
         Topic specific callbacks may be removed with
         message_callback_remove()."""
         if callback is None or sub is None:
@@ -2439,7 +2440,7 @@ class Client(object):
         raise ssl.SSLError('Certificate subject does not match remote hostname.')
 
 
-# Compatibility class for easy porting from mosquitto.py. 
+# Compatibility class for easy porting from mosquitto.py.
 class Mosquitto(Client):
     def __init__(self, client_id="", clean_session=True, userdata=None):
         super(Mosquitto, self).__init__(client_id, clean_session, userdata)

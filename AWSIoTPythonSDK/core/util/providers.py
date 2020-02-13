@@ -15,7 +15,6 @@
 
 
 class CredentialsProvider(object):
-
     def __init__(self):
         self._ca_path = ""
 
@@ -27,13 +26,12 @@ class CredentialsProvider(object):
 
 
 class CertificateCredentialsProvider(CredentialsProvider):
-
     def __init__(self):
         CredentialsProvider.__init__(self)
         self._cert_path = ""
         self._key_path = ""
 
-    def set_cert_path(self,cert_path):
+    def set_cert_path(self, cert_path):
         self._cert_path = cert_path
 
     def set_key_path(self, key_path):
@@ -47,7 +45,6 @@ class CertificateCredentialsProvider(CredentialsProvider):
 
 
 class IAMCredentialsProvider(CredentialsProvider):
-
     def __init__(self):
         CredentialsProvider.__init__(self)
         self._aws_access_key_id = ""
@@ -74,10 +71,10 @@ class IAMCredentialsProvider(CredentialsProvider):
 
 
 class EndpointProvider(object):
-
     def __init__(self):
         self._host = ""
         self._port = -1
+        self._region = ""
 
     def set_host(self, host):
         self._host = host
@@ -85,8 +82,14 @@ class EndpointProvider(object):
     def set_port(self, port):
         self._port = port
 
+    def set_region(self, region):
+        self._region = region
+
     def get_host(self):
         return self._host
 
     def get_port(self):
         return self._port
+
+    def get_region(self):
+        return self._region
